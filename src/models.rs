@@ -1,5 +1,5 @@
 use crate::schema::*;
-use diesel::sql_types::{Integer, Text};
+use diesel::sql_types::{Integer, Text, BigInt};
 
 pub const GENDER_BOY: i32 = 0;
 pub const GENDER_GIRL: i32 = 1;
@@ -109,8 +109,8 @@ pub struct CandidateResult {
     pub gender: i32,
     #[sql_type = "Text"]
     pub symbol: String,
-    #[sql_type = "Integer"]
-    pub votes: i32,
+    #[sql_type = "BigInt"]
+    pub votes: i64,
 }
 
 #[derive(Insertable)]

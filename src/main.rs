@@ -520,7 +520,7 @@ fn cast_vote(voter_vote: Json<VoterVote>, db: Database) -> JsonResponse<()> {
 #[get("/result")]
 fn result(token: LoginToken, db: Database) -> JsonResponse<Vec<CandidateResult>> {
     let results = diesel::sql_query(
-        format!("SELECT id, name, school_id, class_id, election_id, gender, symbol, COUNT(candidate_id) FROM candidates LEFT JOIN votes on candidate.id = votes.candidate_id GROUP BY votes.candidate_id WHERE school_id={}", token.school_id)
+        format!("SELECT candidates.id, name, school_id, class_id, election_id, gender, symbol, COUNT(votes.id) as votes FROM candidates LEFT JOIN votes on candidates.id = votes.candidate_id WHERE school_id={} GROUP BY candidates.id ", token.school_id)
     )
     .load(&db.0).unwrap();
     Json(Response {
