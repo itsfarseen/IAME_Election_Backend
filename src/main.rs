@@ -417,6 +417,7 @@ fn delete_candidate(db: Database, token: LoginToken, candidate_id: i32) -> JsonR
 struct VoterInfo {
     student_num: i32,
     class_id: i32,
+    school_id: i32,
     gender: i32,
 }
 
@@ -449,6 +450,7 @@ fn get_candidates_for_voter(db: Database, voter: Json<VoterInfo>) -> JsonRespons
     let candidates = candidates::table
         .inner_join(elections::table.on(candidates::election_id.eq(elections::id)))
         .select((candidates::id, elections::name, candidates::name, candidates::symbol))
+        .filter(candidates::school_id.eq(voter.school_id))
         .filter(
             elections::genders
                 .eq(GENDER_ELECTION_BOTH)
