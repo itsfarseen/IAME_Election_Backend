@@ -22,7 +22,7 @@ use rocket_contrib::json::Json;
 mod models;
 mod schema;
 use schema::*;
-
+use dotenv;
 use models::*;
 
 #[database("election_db")]
@@ -531,6 +531,7 @@ fn result(token: LoginToken, db: Database) -> JsonResponse<Vec<CandidateResult>>
 }
 
 fn main() {
+    dotenv::dotenv().unwrap();
     rocket::ignite()
         .attach(Database::fairing())
         .mount(
