@@ -107,8 +107,6 @@ pub struct CandidateResult {
     pub election_id: i32,
     #[sql_type = "Integer"]
     pub gender: i32,
-    #[sql_type = "Text"]
-    pub symbol: String,
     #[sql_type = "BigInt"]
     pub votes: i64,
 }
