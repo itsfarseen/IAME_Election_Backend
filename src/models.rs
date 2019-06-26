@@ -1,5 +1,5 @@
 use crate::schema::*;
-use diesel::sql_types::{Integer, Text, BigInt};
+use diesel::sql_types::{BigInt, Integer, Text};
 
 pub const GENDER_BOY: i32 = 0;
 pub const GENDER_GIRL: i32 = 1;

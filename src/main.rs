@@ -21,9 +21,9 @@ use rocket_contrib::json::Json;
 
 mod models;
 mod schema;
-use schema::*;
 use dotenv;
 use models::*;
+use schema::*;
 
 #[database("election_db")]
 struct Database(diesel::PgConnection);
@@ -430,7 +430,10 @@ struct CandidateInfo {
 }
 
 #[post("/voter/get", data = "<voter>")]
-fn get_candidates_for_voter(db: Database, voter: Json<VoterInfo>) -> JsonResponse<Vec<CandidateInfo>> {
+fn get_candidates_for_voter(
+    db: Database,
+    voter: Json<VoterInfo>,
+) -> JsonResponse<Vec<CandidateInfo>> {
     use schema::voted;
     if voted::table
         .filter(voted::voter_num.eq(voter.student_num))
@@ -449,7 +452,12 @@ fn get_candidates_for_voter(db: Database, voter: Json<VoterInfo>) -> JsonRespons
     use schema::elections;
     let candidates = candidates::table
         .inner_join(elections::table.on(candidates::election_id.eq(elections::id)))
-        .select((candidates::id, elections::name, candidates::name, candidates::symbol))
+        .select((
+            candidates::id,
+            elections::name,
+            candidates::name,
+            candidates::symbol,
+        ))
         .filter(candidates::school_id.eq(voter.school_id))
         .filter(
             elections::genders
@@ -532,6 +540,32 @@ fn result(token: LoginToken, db: Database) -> JsonResponse<Vec<CandidateResult>>
     })
 }
 
+#[post("/delete_votes")]
+fn delete_votes(token: LoginToken, db: Database) -> JsonResponse<()> {
+    use schema::candidates;
+    use schema::votes;
+    use schema::school_classes;
+    diesel::delete(votes::table).filter(
+        votes::candidate_id.eq_any(
+            candidates::table
+                .select(candidates::id)
+                .filter(candidates::school_id.eq(token.school_id)),
+        ),
+    ).execute(&db.0).unwrap();
+    diesel::delete(voted::table).filter(
+        voted::class_id.eq_any(
+            school_classes::table
+                .select(school_classes::id)
+                .filter(school_classes::school_id.eq(token.school_id)),
+        ),
+    ).execute(&db.0).unwrap();
+    Json(Response{
+        success: true,
+        message: "Votes cleared for your school".to_owned(),
+        data: None
+    })
+}
+
 fn main() {
     dotenv::dotenv().unwrap();
     rocket::ignite()
@@ -555,7 +589,8 @@ fn main() {
                 delete_candidate,
                 get_candidates_for_voter,
                 cast_vote,
-                result
+                result,
+                delete_votes
             ],
         )
         .launch();
