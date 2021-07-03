@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:13.3-alpine
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports: 
+      - 11501:5432
+  adminer:
+    image: adminer
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+      - ADMINER_DESIGN=dracula
+    ports:
+      - 11502:8080
