@@ -13,7 +13,6 @@ use jwt::{decode, encode, Header, Validation};
 use rocket::fairing::AdHoc;
 use rocket::Rocket;
 
-use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use diesel::prelude::*;
@@ -89,7 +88,7 @@ impl<'a, 'r> rocket::request::FromRequest<'a, 'r> for LoginToken {
                 println!("OK");
                 return rocket::Outcome::Success(tok.unwrap().claims);
             } else {
-                println!("{}", tok.err().unwrap().description())
+                println!("{}", tok.err().unwrap())
             }
         }
         println!("FAIL");
@@ -105,7 +104,7 @@ macro_rules! map_err {
         match $l {
             Ok(x) => x,
             Err(e) => {
-                println!("Debug: {}", e.description());
+                println!("Debug: {}", e);
                 return Json(Response {
                     success: false,
                     message: String::from("Database operation failed."),
