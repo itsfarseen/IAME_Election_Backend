@@ -10,11 +10,17 @@ extern crate diesel;
 extern crate serde_derive;
 extern crate jsonwebtoken as jwt;
 use jwt::{decode, encode, Header, Validation};
+use rocket::fairing::AdHoc;
+use rocket::Rocket;
 
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use diesel::prelude::*;
+#[macro_use]
+extern crate diesel_migrations;
+use diesel_migrations::embed_migrations;
+
 use serde::Serialize;
 
 use rocket_contrib::json::Json;
@@ -543,33 +549,52 @@ fn result(token: LoginToken, db: Database) -> JsonResponse<Vec<CandidateResult>>
 #[post("/delete_votes")]
 fn delete_votes(token: LoginToken, db: Database) -> JsonResponse<()> {
     use schema::candidates;
-    use schema::votes;
     use schema::school_classes;
-    diesel::delete(votes::table).filter(
-        votes::candidate_id.eq_any(
-            candidates::table
-                .select(candidates::id)
-                .filter(candidates::school_id.eq(token.school_id)),
-        ),
-    ).execute(&db.0).unwrap();
-    diesel::delete(voted::table).filter(
-        voted::class_id.eq_any(
-            school_classes::table
-                .select(school_classes::id)
-                .filter(school_classes::school_id.eq(token.school_id)),
-        ),
-    ).execute(&db.0).unwrap();
-    Json(Response{
+    use schema::votes;
+    diesel::delete(votes::table)
+        .filter(
+            votes::candidate_id.eq_any(
+                candidates::table
+                    .select(candidates::id)
+                    .filter(candidates::school_id.eq(token.school_id)),
+            ),
+        )
+        .execute(&db.0)
+        .unwrap();
+    diesel::delete(voted::table)
+        .filter(
+            voted::class_id.eq_any(
+                school_classes::table
+                    .select(school_classes::id)
+                    .filter(school_classes::school_id.eq(token.school_id)),
+            ),
+        )
+        .execute(&db.0)
+        .unwrap();
+    Json(Response {
         success: true,
         message: "Votes cleared for your school".to_owned(),
-        data: None
+        data: None,
     })
+}
+
+embed_migrations!();
+
+fn run_db_migrations(rocket: Rocket) -> Result<Rocket, Rocket> {
+    let conn = Database::get_one(&rocket).expect("database connection");
+    match embedded_migrations::run(&*conn) {
+        Ok(()) => Ok(rocket),
+        Err(e) => {
+            panic!("Failed to run database migrations: {:?}", e);
+        }
+    }
 }
 
 fn main() {
     dotenv::dotenv().unwrap();
     rocket::ignite()
         .attach(Database::fairing())
+        .attach(AdHoc::on_attach("DB Migrations", run_db_migrations))
         .mount(
             "/",
             routes![

@@ -54,4 +54,11 @@ table! {
     }
 }
 
-allow_tables_to_appear_in_same_query!(candidates, elections, school_classes, schools, voted, votes,);
+allow_tables_to_appear_in_same_query!(
+    candidates,
+    elections,
+    school_classes,
+    schools,
+    voted,
+    votes,
+);
