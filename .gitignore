@@ -2,3 +2,4 @@
 **/*.rs.bk
 /target2
 /target_old
+/.direnv
