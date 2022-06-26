@@ -9,7 +9,7 @@ extern crate diesel;
 #[macro_use]
 extern crate serde_derive;
 extern crate jsonwebtoken as jwt;
-use jwt::{decode, encode, Header, Validation};
+use jwt::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use rocket::fairing::AdHoc;
 use rocket::Rocket;
 
@@ -83,7 +83,11 @@ impl<'a, 'r> rocket::request::FromRequest<'a, 'r> for LoginToken {
         });
         if header_val.is_some() {
             let header_val = header_val.unwrap();
-            let tok = decode(&header_val, "secret".as_ref(), &Validation::default());
+            let tok = decode(
+                &header_val,
+                &DecodingKey::from_secret("secret".as_ref()),
+                &Validation::default(),
+            );
             if tok.is_ok() {
                 println!("OK");
                 return rocket::Outcome::Success(tok.unwrap().claims);
@@ -131,7 +135,14 @@ fn login(db: Database, creds: Json<Login>) -> JsonResponse<String> {
         Json(Response {
             success: true,
             message: "Login success".to_owned(),
-            data: Some(encode(&Header::default(), &claims, "secret".as_ref()).unwrap()),
+            data: Some(
+                encode(
+                    &Header::default(),
+                    &claims,
+                    &EncodingKey::from_secret("secret".as_ref()),
+                )
+                .unwrap(),
+            ),
         })
     } else {
         Json(Response {

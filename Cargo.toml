@@ -7,12 +7,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rocket = "0.4"
-rocket_contrib = {version="0.4", default-features=false, features=["diesel_postgres_pool","json"]}
-diesel = {version = "1.4", features=["postgres"]}
-dotenv = "0.9"
-serde = "1.0"
-serde_json = "1.0"
-serde_derive = "1.0"
-jsonwebtoken = "5.0"
+rocket = "0.4.11"
+rocket_contrib = { version = "0.4.11", default-features = false, features = ["diesel_postgres_pool","json"] }
+diesel = { version = "1.4.8", features = ["postgres"] }
+dotenv = "0.15.0"
+serde = "1.0.137"
+serde_json = "1.0.81"
+serde_derive = "1.0.137"
+jsonwebtoken = "8.1.1"
 diesel_migrations = "1.4.0"
